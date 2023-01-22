@@ -2,8 +2,8 @@ package assignments;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Scanner;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import assignments.annotations.FullNameProcessorGeneratorAnnotation;
 import assignments.annotations.ListIteratorAnnotation;
@@ -19,7 +19,7 @@ public class LocalProcessor {
     private StringBuilder processorVersion;
     private Integer valueOfCheap;
     private Scanner informationScanner;
-    private static ArrayList<String> stringArrayList = new ArrayList<>();
+    private List<String> stringArrayList = new LinkedList<>();
 
     public LocalProcessor(String processorName, Long period, StringBuilder processorVersion, Integer valueOfCheap,
                           Scanner informationScanner, ArrayList<String> stringArrayList) {
@@ -28,34 +28,43 @@ public class LocalProcessor {
         this.processorVersion = processorVersion;
         this.valueOfCheap = valueOfCheap;
         this.informationScanner = informationScanner;
-        LocalProcessor.stringArrayList = stringArrayList;
+        this.stringArrayList = stringArrayList;
     }
 
     public LocalProcessor() {
     }
 
     @ListIteratorAnnotation
-    public void listIterator(ArrayList<String> stringList) {
-        stringArrayList = new ArrayList<>(stringList);
-        for (int i = 0; i < period; i++) {
-            System.out.println(stringArrayList.get(i));
-        }
+    public void listIterator(List<String> stringList) {
+        stringList
+                .stream()
+                .filter(Objects::nonNull)
+                .mapToInt(Objects::hashCode)
+                .forEach(System.out::println);
     }
 
     @FullNameProcessorGeneratorAnnotation
-    public String fullNameProcessorGenerator(ArrayList<String> stringList) {
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < stringArrayList.size(); i++) {
-            builder.append(stringList.get(i)).append(' ');
-        }
-        return builder.toString();
+    public String fullNameProcessorGenerator(List<String> stringList) {
+        return stringList
+                .stream()
+                .filter(Objects::nonNull)
+                .peek(s -> processorVersion.append(s))
+                .collect(Collectors.joining());
     }
 
     @ReadFullProcessorNameAnnotation
-    public void readFullProcessorName(File file) throws FileNotFoundException {
+    public void readFullProcessorName(File file){
+        try {
             informationScanner = new Scanner(file);
             while (informationScanner.hasNext()) {
                 processorVersion.append(informationScanner.nextLine());
             }
+        }catch (FileNotFoundException e){
+            e.printStackTrace();
+        } finally {
+            if (informationScanner != null){
+                informationScanner.close();
+            }
+        }
     }
 }
